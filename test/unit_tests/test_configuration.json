@@ -1,4 +1,13 @@
 {
-  "vehicles_image_directory":"../../test_images/vehicles/",
-  "nonvehicles_image_directory":"../../test_images/non-vehicles/"
+  "vehicles_image_directory": "../../test_images/vehicles/",
+  "nonvehicles_image_directory": "../../test_images/non-vehicles/",
+  "colorspace": "RGB",
+  "orient": 9,
+  "pix_per_cell": 8,
+  "cell_per_block": 2,
+  "hog_channel": 0,
+  "feature_vec_hog": "True",
+  "visualize_hog": "False",
+  "image_height": 32,
+  "image_width": 32
 }

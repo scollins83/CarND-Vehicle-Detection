@@ -4,6 +4,15 @@ import json
 import glob
 import sys
 import os
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+import time
+from skimage.feature import hog
+from sklearn.svm import LinearSVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
 
 logging.basicConfig(level=logging.INFO)
@@ -48,6 +57,61 @@ def get_image_file_paths(directory):
     return image_list
 
 
+def get_hog_features(image, orient, pix_per_cell, cell_per_block,
+                        visualize="False", feature_vec="True"):
+    """
+    Function copied from Udacity Self-Driving Car Nanodegree quiz.
+    :param img:
+    :param orient:
+    :param pix_per_cell:
+    :param cell_per_block:
+    :param vis:
+    :param feature_vec:
+    :return:
+    """
+    # Convert string-based true or false values to boolean.
+    if visualize == "True":
+        visualize = True
+    else:
+        visualize = False
+
+    if feature_vec == "True":
+        feature_vec = True
+    else:
+        feature_vec = False
+
+    if visualize == True:
+        features, hog_image = hog(image, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+                                  cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=True,
+                                  visualise=visualize, feature_vector=feature_vec)
+        return features, hog_image
+    # Otherwise call with one output
+    else:
+        features = hog(image, orientations=orient, pixels_per_cell=(pix_per_cell, pix_per_cell),
+                       cells_per_block=(cell_per_block, cell_per_block), transform_sqrt=True,
+                       visualise=visualize, feature_vector=feature_vec)
+        return features
+
+
+def bin_spatial(image, size=(32, 32)):
+    """
+    Spatially bins channels of a 3-channel image.
+    :param image: Image array.
+    :param size: Tuple, 2 values for image height and width.
+    :return: spatially binned color channels
+    """
+    colors = []
+    assert image.shape[-1] == 3
+
+    for channel in range(image.shape[-1]):
+        #color1 = cv2.resize(image[:, :, 0], size).ravel()
+        #color2 = cv2.resize(image[:, :, 1], size).ravel()
+        #color3 = cv2.resize(image[:, :, 2], size).ravel()
+        colors.append(cv2.resize(image[:, :, channel], size).ravel())
+
+    return np.hstack(tuple(colors))
+
+
 if __name__ == '__main__':
 
     # Set TensorFlow logging so it isn't so verbose.
@@ -60,5 +124,7 @@ if __name__ == '__main__':
     logger.info("Reading image file lists...")
     cars = get_image_file_paths(config['vehicles_image_directory'])
     notcars = get_image_file_paths(config['nonvehicles_image_directory'])
+    logger.info("Number of car images: " + str(len(cars)))
+    logger.info("Number of non-car images: " + str(len(notcars)))
 
     sys.exit(0)
