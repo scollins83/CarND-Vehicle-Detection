@@ -1,7 +1,7 @@
 {
   "vehicles_image_directory":"test_images/vehicles/",
   "nonvehicles_image_directory":"test_images/non-vehicles/",
-  "colorspace": "RGB",
+  "color_space": "RGB",
   "orient": 9,
   "pix_per_cell": 8,
   "cell_per_block": 2,
@@ -10,5 +10,8 @@
   "visualize_hog": "False",
   "image_height": 32,
   "image_width": 32,
-  "histogram_bins": 32
+  "histogram_bins": 32,
+  "spatial_features": "True",
+  "histogram_features": "True",
+  "hog_features": "True"
 }

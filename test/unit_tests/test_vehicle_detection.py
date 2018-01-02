@@ -9,11 +9,14 @@ class TestVehicleDetection(unittest.TestCase):
     def setUp(self):
         self.config = vehdetect.load_config('test_configuration.json')
         self.image_path = '../../test_images/vehicles/GTI_Left/image0009.png'
+        self.image_path_list = ['../../test_images/vehicles/GTI_Left/image0009.png',
+                                '../../test_images/vehicles/GTI_Left/image0010.png',
+                                '../../test_images/vehicles/GTI_Left/image0011.png']
 
     def test_get_image_file_paths(self):
         path = self.config['nonvehicles_image_directory']
         image_list = vehdetect.get_image_file_paths(path)
-        self.assertEqual(12, len(image_list))
+        self.assertEqual(len(image_list), 12)
 
     def test_get_hog_features(self):
         image = mpimg.imread(self.image_path)
@@ -44,7 +47,26 @@ class TestVehicleDetection(unittest.TestCase):
         histogram_features = vehdetect.color_histogram(image,
                                                        self.config['histogram_bins'])
         self.assertEqual(len(histogram_features), 96)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        self.assertRaises(AssertionError,
+                          vehdetect.color_histogram,
+                          gray_image,
+                          self.config['histogram_bins'])
 
+    def test_extract_features(self):
+        feature_list = vehdetect.extract_features(self.image_path_list,
+                                                  self.config['color_space'],
+                                                  (self.config['image_height'],
+                                                   self.config['image_width']),
+                                                  self.config['histogram_bins'],
+                                                  self.config['orient'],
+                                                  self.config['pix_per_cell'],
+                                                  self.config['cell_per_block'],
+                                                  self.config['hog_channel'],
+                                                  self.config['spatial_features'],
+                                                  self.config['histogram_features'],
+                                                  self.config['hog_features'])
+        self.assertEqual(len(feature_list), 3)
 
     def tearDown(self):
         del self.config
