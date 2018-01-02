@@ -1,0 +1,4 @@
+{
+  "vehicles_image_directory":"test_images/vehicles/",
+  "nonvehicles_image_directory":"test_images/non-vehicles/"
+}
