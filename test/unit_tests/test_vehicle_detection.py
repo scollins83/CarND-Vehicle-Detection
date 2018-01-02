@@ -39,6 +39,12 @@ class TestVehicleDetection(unittest.TestCase):
                           (self.config['image_height'],
                            self.config['image_width']))
 
+    def test_color_histogram(self):
+        image = mpimg.imread(self.image_path)
+        histogram_features = vehdetect.color_histogram(image,
+                                                       self.config['histogram_bins'])
+        self.assertEqual(len(histogram_features), 96)
+
 
     def tearDown(self):
         del self.config

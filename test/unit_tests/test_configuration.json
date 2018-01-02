@@ -9,5 +9,6 @@
   "feature_vec_hog": "True",
   "visualize_hog": "False",
   "image_height": 32,
-  "image_width": 32
+  "image_width": 32,
+  "histogram_bins": 32
 }

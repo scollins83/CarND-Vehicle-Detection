@@ -97,19 +97,35 @@ def bin_spatial(image, size=(32, 32)):
     """
     Spatially bins channels of a 3-channel image.
     :param image: Image array.
-    :param size: Tuple, 2 values for image height and width.
+    :param size: Tuple, 2 values for image height and width for downsampling.
     :return: spatially binned color channels
     """
-    colors = []
     assert image.shape[-1] == 3
+    colors = []
 
     for channel in range(image.shape[-1]):
-        #color1 = cv2.resize(image[:, :, 0], size).ravel()
-        #color2 = cv2.resize(image[:, :, 1], size).ravel()
-        #color3 = cv2.resize(image[:, :, 2], size).ravel()
         colors.append(cv2.resize(image[:, :, channel], size).ravel())
 
     return np.hstack(tuple(colors))
+
+
+def color_histogram(image, nbins=32):
+    """
+
+    :param image:
+    :param nbins:
+    :return:
+    """
+    assert image.shape[-1] == 3
+    channel_hists = []
+
+    for channel in range(image.shape[-1]):
+        channel_hists.append(np.histogram(image[:, :, channel], bins=nbins)[0])
+
+    # Return the concatenated histograms
+    return np.concatenate(tuple(channel_hists))
+
+
 
 
 if __name__ == '__main__':
