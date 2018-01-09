@@ -1,6 +1,6 @@
 {
-  "vehicles_image_directory":"test_images/vehicles/",
-  "nonvehicles_image_directory":"test_images/non-vehicles/",
+  "vehicles_image_directory":"/Users/saracollins/Dropbox/Udacity/Vehicle_Detection/data/vehicles/",
+  "nonvehicles_image_directory":"/Users/saracollins/Dropbox/Udacity/Vehicle_Detection/data/non-vehicles/",
   "color_space": "RGB",
   "orient": 6,
   "pix_per_cell": 8,
@@ -21,5 +21,8 @@
   "xy_window_x": 32,
   "xy_window_y": 32,
   "xy_overlap_x": 0.5,
-  "xy_overlap_y": 0.5
+  "xy_overlap_y": 0.5,
+  "hog_vis_filename": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/test/saved_images/",
+  "n_samples": 1000,
+  "test_set_percent": 0.1
 }

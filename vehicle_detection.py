@@ -274,6 +274,7 @@ def draw_boxes(image, boxes, color=(0, 0, 255), thick=6):
 
     return imcopy
 
+
 def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
                                   hist_bins=32, orient=9, pix_per_cell=8,
                                   cell_per_block=2, hog_channel=0,
@@ -401,7 +402,7 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
     return on_windows
 
 
-def visualize(figure, rows, cols, imgs, titles):
+def visualize(figure, rows, cols, imgs, titles, filename_root):
     """
 
     :param figure:
@@ -411,6 +412,7 @@ def visualize(figure, rows, cols, imgs, titles):
     :param titles:
     :return:
     """
+    # TODO: Modify to capture runtime in filename.
     for i, img in enumerate(imgs):
         plt.subplot(rows, cols, i+1)
         plt.title(i+1)
@@ -418,9 +420,11 @@ def visualize(figure, rows, cols, imgs, titles):
         if img_dims < 3:
             plt.imshow(img, cmap='hot')
             plt.title(titles[i])
+            plt.savefig(filename_root + 'test_hog.png', format='png')
         else:
             plt.imshow(img)
             plt.title(titles[i])
+            plt.savefig(filename_root + 'test_hog.png', format='png')
 
 
 if __name__ == '__main__':
@@ -473,10 +477,87 @@ if __name__ == '__main__':
                                                                       config['extract_hog_features'],
                                                                       config['visualize_hog'],
                                                                       config['feature_vec_hog'])
+    logger.info(car_features.shape)
+    logger.info(notcar_features.shape)
 
     images = [car_image, car_hog_image, notcar_image, notcar_hog_image]
     titles = ['car image', 'car HOG image', 'notcar image', 'notcar HOG image']
-    fig = plt.figure(figsize=(12, 3))
-    visualize(fig, 1, 4, images, titles)
+    fig = plt.figure(figsize=(10, 10))
+    visualize(fig, 2, 2, images, titles, config['hog_vis_filename'])
+
+    t = time.time()
+    random_idxs = np.random.randint(0, len(cars), config['n_samples'])
+
+    if len(cars) <= config['n_samples']:
+        test_cars = cars
+        test_notcars = notcars
+    else:
+        #test_cars = np.array(cars)[random_idxs]
+        #test_notcars = np.array(notcars)[random_idxs]
+        test_cars = [cars[i] for i in random_idxs]
+        test_notcars = [cars[i] for i in random_idxs]
+
+    car_features = extract_features(test_cars,
+                                    config['color_space'],
+                                    (config['image_height'],
+                                     config['image_width']),
+                                    config['histogram_bins'],
+                                    config['orient'],
+                                    config['pix_per_cell'],
+                                    config['cell_per_block'],
+                                    config['hog_channel'],
+                                    config['extract_spatial_features'],
+                                    config['extract_histogram_features'],
+                                    config['extract_hog_features'],
+                                    "False",
+                                    config['feature_vec_hog'])
+
+    notcar_features = extract_features(test_notcars,
+                                       config['color_space'],
+                                       (config['image_height'],
+                                        config['image_width']),
+                                       config['histogram_bins'],
+                                       config['orient'],
+                                       config['pix_per_cell'],
+                                       config['cell_per_block'],
+                                       config['hog_channel'],
+                                       config['extract_spatial_features'],
+                                       config['extract_histogram_features'],
+                                       config['extract_hog_features'],
+                                       "False",
+                                       config['feature_vec_hog'])
+
+    seconds = np.round((time.time() - t), 4)
+    logger.info('Seconds to compute features... ' + str(seconds))
+    logger.info(len(car_features))
+    logger.info(len(notcar_features))
+
+    # feature_tuple = zip(car_features, notcar_features)
+    X = np.vstack((car_features, notcar_features)).astype(np.float64)
+    # Fit a per-column scaler
+    X_scaler = StandardScaler().fit(X)
+    scaled_X = X_scaler.transform(X)
+
+    # Define labels vector
+    y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+
+    # Test/Train Sets
+    rand_state = np.random.randint(0, 100)
+    X_train, X_test, y_train, y_test = train_test_split(scaled_X, y,
+                                                        test_size=config['test_set_percent'],
+                                                        random_state=rand_state)
+
+    logger.info('Using: ' + str(config['orient']) + ' orientations, ' +
+                str(config['pix_per_cell']) + ' pixels per cell, ' +
+                str(config['cell_per_block']) + ' cells per block, ' +
+                str(config['histogram_bins']) + ' histogram bins, and (' +
+                str(config['image_height']) + ',' + str(config['image_width']) + ') spatial sampling.')
+
+    logger.info('Feature vector length: ' + str(len(X_train[0])))
+
+    # Using a linear SVC
+    svc = LinearSVC()
+
+
 
     sys.exit(0)
