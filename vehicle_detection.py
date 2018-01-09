@@ -299,9 +299,9 @@ def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
     hist_feat = convert_string_to_boolean(hist_feat)
     hog_feat = convert_string_to_boolean(hog_feat)
 
-    #1) Define an empty list to receive features
+    # 1) Define an empty list to receive features
     img_features = []
-    #2) Apply color conversion if other than 'RGB'
+    # 2) Apply color conversion if other than 'RGB'
     if color_space != 'RGB':
         if color_space == 'HSV':
             feature_image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
@@ -315,28 +315,28 @@ def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
             feature_image = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
     else:
         feature_image = np.copy(img)
-    #3) Compute spatial features if flag is set
+    # 3) Compute spatial features if flag is set
     if spatial_feat == True:
         spatial_features = bin_spatial(feature_image, size=spatial_size)
-        #4) Append features to list
+        # 4) Append features to list
         img_features.append(spatial_features)
-    #5) Compute histogram features if flag is set
+    # 5) Compute histogram features if flag is set
     if hist_feat == True:
         hist_features = color_histogram(feature_image, nbins=hist_bins)
-        #6) Append features to list
+        # 6) Append features to list
         img_features.append(hist_features)
-    #7) Compute HOG features if flag is set
+    # 7) Compute HOG features if flag is set
     if hog_feat == True:
         if hog_visualize == "False":
             if hog_channel == 'ALL':
                 hog_features = []
                 for channel in range(feature_image.shape[2]):
-                    hog_features.extend(get_hog_features(feature_image[:,:,channel],
-                                        orient, pix_per_cell, cell_per_block,
-                                        visualize=hog_visualize, feature_vec=hog_feature_vector))
+                    hog_features.extend(get_hog_features(feature_image[:, :, channel],
+                                                         orient, pix_per_cell, cell_per_block,
+                                                         visualize=hog_visualize, feature_vec=hog_feature_vector))
             else:
-                hog_features = get_hog_features(feature_image[:,:,hog_channel], orient,
-                            pix_per_cell, cell_per_block, visualize=hog_visualize,
+                hog_features = get_hog_features(feature_image[:, :, hog_channel], orient,
+                                                pix_per_cell, cell_per_block, visualize=hog_visualize,
                                                 feature_vec=hog_feature_vector)
             img_features.append(hog_features)
 
@@ -346,7 +346,7 @@ def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
                 hog_images = []
 
                 for channel in range(feature_image.shape[2]):
-                    hog_feature, hog_image = get_hog_features(feature_image[:,:,channel],
+                    hog_feature, hog_image = get_hog_features(feature_image[:, :, channel],
                                                               orient, pix_per_cell, cell_per_block,
                                                               visualize=hog_visualize,
                                                               feature_vec=hog_feature_vector)
@@ -358,7 +358,7 @@ def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
 
 
             else:
-                hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel],
+                hog_features, hog_image = get_hog_features(feature_image[:, :, hog_channel],
                                                            orient, pix_per_cell,
                                                            cell_per_block,
                                                            visualize=hog_visualize,
@@ -367,38 +367,36 @@ def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
                 img_features.append(hog_features)
                 return np.concatenate(img_features), hog_image
 
-
-    #9) Return concatenated array of features
+    # 9) Return concatenated array of features
     return np.concatenate(img_features)
 
 
 def search_windows(img, windows, clf, scaler, color_space='RGB',
-                    spatial_size=(32, 32), hist_bins=32,
-                    orient=9, pix_per_cell=8, cell_per_block=2,
-                    hog_channel=0, spatial_feat="True",
-                    hist_feat="True", hog_feat="True"):
-
-    #1) Create an empty list to receive positive detection windows
+                   spatial_size=(32, 32), hist_bins=32,
+                   orient=9, pix_per_cell=8, cell_per_block=2,
+                   hog_channel=0, spatial_feat="True",
+                   hist_feat="True", hog_feat="True"):
+    # 1) Create an empty list to receive positive detection windows
     on_windows = []
-    #2) Iterate over all windows in the list
+    # 2) Iterate over all windows in the list
     for window in windows:
-        #3) Extract the test window from original image
+        # 3) Extract the test window from original image
         test_img = cv2.resize(img[window[0][1]:window[1][1], window[0][0]:window[1][0]], (64, 64))
-        #4) Extract features for that window using single_img_features()
+        # 4) Extract features for that window using single_img_features()
         features = extract_single_image_features(test_img, color_space=color_space,
-                            spatial_size=spatial_size, hist_bins=hist_bins,
-                            orient=orient, pix_per_cell=pix_per_cell,
-                            cell_per_block=cell_per_block,
-                            hog_channel=hog_channel, spatial_feat=spatial_feat,
-                            hist_feat=hist_feat, hog_feat=hog_feat)
-        #5) Scale extracted features to be fed to classifier
+                                                 spatial_size=spatial_size, hist_bins=hist_bins,
+                                                 orient=orient, pix_per_cell=pix_per_cell,
+                                                 cell_per_block=cell_per_block,
+                                                 hog_channel=hog_channel, spatial_feat=spatial_feat,
+                                                 hist_feat=hist_feat, hog_feat=hog_feat)
+        # 5) Scale extracted features to be fed to classifier
         test_features = scaler.transform(np.array(features).reshape(1, -1))
-        #6) Predict using your classifier
+        # 6) Predict using your classifier
         prediction = clf.predict(test_features)
-        #7) If positive (prediction == 1) then save the window
+        # 7) If positive (prediction == 1) then save the window
         if prediction == 1:
             on_windows.append(window)
-    #8) Return windows for positive detections
+    # 8) Return windows for positive detections
     return on_windows
 
 
@@ -414,8 +412,8 @@ def visualize(figure, rows, cols, imgs, titles, filename_root):
     """
     # TODO: Modify to capture runtime in filename.
     for i, img in enumerate(imgs):
-        plt.subplot(rows, cols, i+1)
-        plt.title(i+1)
+        plt.subplot(rows, cols, i + 1)
+        plt.title(i + 1)
         img_dims = len(img.shape)
         if img_dims < 3:
             plt.imshow(img, cmap='hot')
@@ -492,8 +490,8 @@ if __name__ == '__main__':
         test_cars = cars
         test_notcars = notcars
     else:
-        #test_cars = np.array(cars)[random_idxs]
-        #test_notcars = np.array(notcars)[random_idxs]
+        # test_cars = np.array(cars)[random_idxs]
+        # test_notcars = np.array(notcars)[random_idxs]
         test_cars = [cars[i] for i in random_idxs]
         test_notcars = [cars[i] for i in random_idxs]
 
@@ -557,7 +555,11 @@ if __name__ == '__main__':
 
     # Using a linear SVC
     svc = LinearSVC()
+    t = time.time()
+    svc.fit(X_train, y_train)
+    logger.info(str(round(time.time()-t, 2)) + ' seconds to train SVC...')
 
-
+    # Check SVC score
+    logger.info('Test accuracy of SVC = ' + str(round(svc.score(X_test, y_test))))
 
     sys.exit(0)
