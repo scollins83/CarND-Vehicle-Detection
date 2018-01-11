@@ -11,8 +11,11 @@ import cv2
 import time
 from skimage.feature import hog
 from sklearn.svm import LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -204,6 +207,56 @@ def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
         features.append(np.concatenate(file_features))
     # Return list of feature vectors
     return features
+
+
+def extract_features_2(imgs, color_space='RGB', spatial_size=(32, 32),
+                     hist_bins=32, orient=9,
+                     pix_per_cell=8, cell_per_block=2, hog_channel=0,
+                     spatial_feat="True", hist_feat="True", hog_feat="True",
+                     hog_visualize="False", hog_feature_vector="True"):
+    """
+
+    :param imgs:
+    :param color_space:
+    :param spatial_size:
+    :param hist_bins:
+    :param orient:
+    :param pix_per_cell:
+    :param cell_per_block:
+    :param hog_channel:
+    :param spatial_feat:
+    :param hist_feat:
+    :param hog_feat:
+    :param hog_visualize:
+    :param hog_feature_vector:
+    :return:
+    """
+    features = []
+
+    for file in imgs:
+        file_features = []
+        # Read in each one by one
+        image = mpimg.imread(file)
+
+
+        feature_stack = extract_single_image_features(image, color_space,
+                                                         spatial_size,
+                                                         hist_bins,
+                                                         orient,
+                                                         pix_per_cell,
+                                                         cell_per_block,
+                                                         hog_channel,
+                                                         spatial_feat,
+                                                         hist_feat,
+                                                         hog_feat,
+                                                         hog_visualize,
+                                                         hog_feature_vector)
+        features.append(feature_stack)
+
+    return features
+
+
+
 
 
 def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
@@ -400,7 +453,7 @@ def search_windows(img, windows, clf, scaler, color_space='RGB',
     return on_windows
 
 
-def visualize(figure, rows, cols, imgs, titles, filename_root):
+def visualize(figure, rows, cols, imgs, titles, filename):
     """
 
     :param figure:
@@ -418,11 +471,26 @@ def visualize(figure, rows, cols, imgs, titles, filename_root):
         if img_dims < 3:
             plt.imshow(img, cmap='hot')
             plt.title(titles[i])
-            plt.savefig(filename_root + 'test_hog.png', format='png')
+            plt.savefig(filename, format='png')
         else:
             plt.imshow(img)
             plt.title(titles[i])
-            plt.savefig(filename_root + 'test_hog.png', format='png')
+            plt.savefig(filename, format='png')
+
+
+def convert_color(image, conv='RGB2YCrCb'):
+    """
+    Converts color space.
+    :param image: Input image
+    :param conv:
+    :return:
+    """
+    if conv == 'RGB2YCrCb':
+        return cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
+    elif conv == 'BGR2YCrCb':
+        return cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+    elif conv == 'RGB2LUV':
+        return cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
 
 
 if __name__ == '__main__':
@@ -437,51 +505,54 @@ if __name__ == '__main__':
     logger.info("Reading image file lists...")
     cars = get_image_file_paths(config['vehicles_image_directory'])
     notcars = get_image_file_paths(config['nonvehicles_image_directory'])
-    logger.info("Number of car images: " + str(len(cars)))
-    logger.info("Number of non-car images: " + str(len(notcars)))
+    # logger.info("Number of car images: " + str(len(cars)))
+    # logger.info("Number of non-car images: " + str(len(notcars)))
 
-    car_ind = np.random.randint(0, len(cars))
-    notcar_ind = np.random.randint(0, len(notcars))
+    if config['single_image_display'] == "True":
 
-    car_image = mpimg.imread(cars[car_ind])
-    notcar_image = mpimg.imread(notcars[notcar_ind])
+        car_ind = np.random.randint(0, len(cars))
+        notcar_ind = np.random.randint(0, len(notcars))
 
-    car_features, car_hog_image = extract_single_image_features(car_image,
-                                                                config['color_space'],
-                                                                (config['image_height'],
-                                                                 config['image_width']),
-                                                                config['histogram_bins'],
-                                                                config['orient'],
-                                                                config['pix_per_cell'],
-                                                                config['cell_per_block'],
-                                                                config['hog_channel'],
-                                                                config['extract_spatial_features'],
-                                                                config['extract_histogram_features'],
-                                                                config['extract_hog_features'],
-                                                                config['visualize_hog'],
-                                                                config['feature_vec_hog'])
+        car_image = mpimg.imread(cars[car_ind])
+        notcar_image = mpimg.imread(notcars[notcar_ind])
 
-    notcar_features, notcar_hog_image = extract_single_image_features(notcar_image,
-                                                                      config['color_space'],
-                                                                      (config['image_height'],
-                                                                       config['image_width']),
-                                                                      config['histogram_bins'],
-                                                                      config['orient'],
-                                                                      config['pix_per_cell'],
-                                                                      config['cell_per_block'],
-                                                                      config['hog_channel'],
-                                                                      config['extract_spatial_features'],
-                                                                      config['extract_histogram_features'],
-                                                                      config['extract_hog_features'],
-                                                                      config['visualize_hog'],
-                                                                      config['feature_vec_hog'])
-    logger.info(car_features.shape)
-    logger.info(notcar_features.shape)
+        car_features, car_hog_image = extract_single_image_features(car_image,
+                                                                    config['color_space'],
+                                                                    (config['image_height'],
+                                                                     config['image_width']),
+                                                                    config['histogram_bins'],
+                                                                    config['orient'],
+                                                                    config['pix_per_cell'],
+                                                                    config['cell_per_block'],
+                                                                    config['hog_channel'],
+                                                                    config['extract_spatial_features'],
+                                                                    config['extract_histogram_features'],
+                                                                    config['extract_hog_features'],
+                                                                    config['visualize_hog'],
+                                                                    config['feature_vec_hog'])
 
-    images = [car_image, car_hog_image, notcar_image, notcar_hog_image]
-    titles = ['car image', 'car HOG image', 'notcar image', 'notcar HOG image']
-    fig = plt.figure(figsize=(10, 10))
-    visualize(fig, 2, 2, images, titles, config['hog_vis_filename'])
+        notcar_features, notcar_hog_image = extract_single_image_features(notcar_image,
+                                                                          config['color_space'],
+                                                                          (config['image_height'],
+                                                                           config['image_width']),
+                                                                          config['histogram_bins'],
+                                                                          config['orient'],
+                                                                          config['pix_per_cell'],
+                                                                          config['cell_per_block'],
+                                                                          config['hog_channel'],
+                                                                          config['extract_spatial_features'],
+                                                                          config['extract_histogram_features'],
+                                                                          config['extract_hog_features'],
+                                                                          config['visualize_hog'],
+                                                                          config['feature_vec_hog'])
+        logger.info(car_features.shape)
+        logger.info(notcar_features.shape)
+
+        images = [car_image, car_hog_image, notcar_image, notcar_hog_image]
+        titles = ['car image', 'car HOG image', 'notcar image', 'notcar HOG image']
+        fig = plt.figure(figsize=(10, 10))
+        visualize(fig, 2, 2, images, titles, config['hog_vis_filename'])
+
 
     t = time.time()
     random_idxs = np.random.randint(0, len(cars), config['n_samples'])
@@ -490,10 +561,10 @@ if __name__ == '__main__':
         test_cars = cars
         test_notcars = notcars
     else:
-        # test_cars = np.array(cars)[random_idxs]
-        # test_notcars = np.array(notcars)[random_idxs]
         test_cars = [cars[i] for i in random_idxs]
         test_notcars = [cars[i] for i in random_idxs]
+
+
 
     car_features = extract_features(test_cars,
                                     config['color_space'],
@@ -530,20 +601,21 @@ if __name__ == '__main__':
     logger.info(len(car_features))
     logger.info(len(notcar_features))
 
-    # feature_tuple = zip(car_features, notcar_features)
+
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
-    # Fit a per-column scaler
+
+    # Scale X features
     X_scaler = StandardScaler().fit(X)
     scaled_X = X_scaler.transform(X)
-
+    logger.info('X: ' + str(len(scaled_X)))
     # Define labels vector
     y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
+    logger.info('y: ' + str(len(y)))
 
     # Test/Train Sets
-    rand_state = np.random.randint(0, 100)
     X_train, X_test, y_train, y_test = train_test_split(scaled_X, y,
                                                         test_size=config['test_set_percent'],
-                                                        random_state=rand_state)
+                                                        shuffle=True)
 
     logger.info('Using: ' + str(config['orient']) + ' orientations, ' +
                 str(config['pix_per_cell']) + ' pixels per cell, ' +
@@ -554,12 +626,74 @@ if __name__ == '__main__':
     logger.info('Feature vector length: ' + str(len(X_train[0])))
 
     # Using a linear SVC
-    svc = LinearSVC()
+    #parameters = {'C': [1, 5, 10]}
+    svc = LinearSVC(C=5)
     t = time.time()
+    #clf = GridSearchCV(svr, parameters)
     svc.fit(X_train, y_train)
     logger.info(str(round(time.time()-t, 2)) + ' seconds to train SVC...')
-
+    #best = clf.best_estimator_
+    logger.info(svc)
     # Check SVC score
-    logger.info('Test accuracy of SVC = ' + str(round(svc.score(X_test, y_test))))
+    logger.info('Test accuracy of Classifier = ' + str(svc.score(X_test, y_test)))
+
+    # Start with video
+    images = []
+    titles = []
+    y_start_stop = [config['y_start'], config['y_stop']] # Min/Max in y to search with slide_window()
+    example_images = ['examples/sample.jpg']
+    for img_src in example_images:
+        img_boxes = []
+        t1 = time.time()
+        count = 0
+        img = mpimg.imread(img_src)
+        draw_img = np.copy(img)
+
+        # Make Heatmap
+        heatmap = np.zeros_like((img[:, :, 0]))
+        img = img.astype(np.float32)/255. # Needed if trained on png, but are now using jpg
+        logger.info(str(np.min(img)) + ',' + str(np.max(img)))
+
+        # Crop the image
+        img_tosearch = img[config['y_start']:config['y_stop'], :, :]
+
+        windows = slide_window(img, x_start_stop=[None, None],
+                               y_start_stop=y_start_stop,
+                               xy_window=(config['xy_window_x'],
+                                          config['xy_window_y']),
+                               xy_overlap=(config['xy_overlap_x'],
+                                           config['xy_overlap_y']))
+
+        hot_windows = search_windows(img, windows, svc, X_scaler,
+                                     color_space=config['color_space'],
+                                     spatial_size=(config['image_height'],
+                                        config['image_width']),
+                                     hist_bins=config['histogram_bins'],
+                                     orient=config['orient'],
+                                     pix_per_cell=config['pix_per_cell'],
+                                     cell_per_block=config['cell_per_block'],
+                                     hog_channel=config['hog_channel'],
+                                     spatial_feat=config['extract_spatial_features'],
+                                     hist_feat=config['extract_histogram_features'],
+                                     hog_feat=config['extract_hog_features'])
+
+        window_img = draw_boxes(draw_img, hot_windows,
+                                color=(config['box_color_red'],
+                                       config['box_color_green'],
+                                       config['box_color_blue']),
+                                thick=config['box_line_thickness'])
+
+        logger.info("Number of windows: " + str(len(windows)))
+        logger.info("Number of hot windows: " + str(len(hot_windows)))
+
+        images.append(window_img)
+        titles.append('')
+        logger.info('Seconds to process one image searching ' + str(len(windows)) + ' windows: ' + \
+                    str(time.time()-t1))
+
+        fig = plt.figure(figsize=(12, 18), dpi=300)
+        visualize(fig, 5, 2, images, titles, config['window_vis_filename'])
+
+        logger.info('Window image saved.')
 
     sys.exit(0)
