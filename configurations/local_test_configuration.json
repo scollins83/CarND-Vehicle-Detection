@@ -35,5 +35,9 @@
   "box_line_thickness": 6,
   "window_vis_filename": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/test/saved_images/window_vis.png",
   "heatmap_vis_filename": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/test/saved_images/heatmap_vis_2.png",
-  "window": 64
+  "window": 64,
+  "input_video_file": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/test_video.mp4",
+  "output_video_file": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/output_images/output_run_1.mp4",
+  "train_classifier": "True",
+  "classifier_file": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/output_images/svc_classifier.pkl"
 }
