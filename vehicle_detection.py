@@ -16,6 +16,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
+from scipy.ndimage.measurements import label
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -493,6 +494,94 @@ def convert_color(image, conv='RGB2YCrCb'):
         return cv2.cvtColor(image, cv2.COLOR_RGB2LUV)
 
 
+def find_cars(img, scale, y_start, y_stop, orient, pix_per_cell, cell_per_block, window, image_height,
+              image_width, histogram_bins, red, green, blue):
+    """
+
+    :param img:
+    :param scale:
+    :return:
+    """
+    count = 0
+    # Copy image to draw on
+    draw_img = np.copy(img)
+
+    # Make Heatmap
+    heatmap = np.zeros_like((img[:, :, 0]))
+
+    # PNG to JPG adjustment
+    img = img.astype(np.float32) / 255.  # Needed if trained on png, but are now using jpg
+    logger.info(str(np.min(img)) + ',' + str(np.max(img)))
+
+    # Crop the image
+    img_tosearch = img[y_start:y_stop, :, :]
+    color_translation_tosearch = convert_color(img_tosearch, conv='RGB2YCrCb')
+    if scale != 1.0:
+        imshape = color_translation_tosearch.shape
+        color_translation_tosearch = cv2.resize(color_translation_tosearch,
+                                                (np.int(imshape[1]/scale),
+                                                 np.int(imshape[0]/scale)))
+    channel_1 = color_translation_tosearch[:, :, 0]
+    channel_2 = color_translation_tosearch[:, :, 1]
+    channel_3 = color_translation_tosearch[:, :, 2]
+    # Define blocks and steps (note: might be duplicate of sliding_window function)
+    nx_blocks = (channel_1.shape[1] // pix_per_cell) - 1
+    ny_blocks = (channel_1.shape[0] // pix_per_cell) - 1
+    nfeat_per_block = orient * cell_per_block ** 2
+
+    nblocks_per_window = (window // pix_per_cell) - 1
+    cells_per_step = 2  # Instead of overlap, define how many cells to step
+    nxsteps = (nx_blocks - nblocks_per_window) // cells_per_step
+    nysteps = (ny_blocks - nblocks_per_window) // cells_per_step
+    hog1 = get_hog_features(channel_1, orient, pix_per_cell,
+                            cell_per_block, feature_vec="False")
+    hog2 = get_hog_features(channel_2, orient, pix_per_cell,
+                            cell_per_block, feature_vec="False")
+    hog3 = get_hog_features(channel_3, orient, pix_per_cell,
+                            cell_per_block, feature_vec="False")
+    for xb in range(nxsteps):
+        for yb in range(nysteps):
+            count += 1
+            ypos = yb * cells_per_step
+            xpos = xb * cells_per_step
+            # Extract HOG for this patch
+            hog_feat1 = hog1[ypos:ypos + nblocks_per_window, xpos:xpos + nblocks_per_window].ravel()
+            hog_feat2 = hog2[ypos:ypos + nblocks_per_window, xpos:xpos + nblocks_per_window].ravel()
+            hog_feat3 = hog3[ypos:ypos + nblocks_per_window, xpos:xpos + nblocks_per_window].ravel()
+            hog_features = np.hstack((hog_feat1, hog_feat2, hog_feat3))
+
+            xleft = xpos * pix_per_cell
+            ytop = ypos * pix_per_cell
+
+            # Extract the image patch
+            subimg = cv2.resize(color_translation_tosearch[ytop:ytop + window, xleft:xleft + window],
+                                (window, window))
+
+            # Get color features
+            spatial_features = bin_spatial(subimg, size=(image_height, image_width))
+            hist_features = color_histogram(subimg, nbins=histogram_bins)
+
+            # Scale features and make a prediction
+            test_features = X_scaler.transform(
+                np.hstack((spatial_features, hist_features, hog_features)).reshape(1, -1))
+            # test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))
+            test_prediction = svc.predict(test_features)
+
+            if test_prediction == 1:
+                xbox_left = np.int(xleft * scale)
+                ytop_draw = np.int(ytop * scale)
+                win_draw = np.int(window * scale)
+                cv2.rectangle(draw_img, (xbox_left, ytop_draw + y_start),
+                              (xbox_left + win_draw, ytop_draw + win_draw + y_start),
+                              (red, green, blue))
+                img_boxes.append(((xbox_left, ytop_draw + y_start),
+                                  xbox_left + win_draw, ytop_draw + win_draw + y_start))
+                heatmap[ytop_draw + y_start:ytop_draw + win_draw + y_start,
+                xbox_left:xbox_left + win_draw] += 1
+
+    return draw_img, heatmap, img_boxes, count
+
+
 if __name__ == '__main__':
 
     # Set TensorFlow logging so it isn't so verbose.
@@ -564,8 +653,6 @@ if __name__ == '__main__':
         test_cars = [cars[i] for i in random_idxs]
         test_notcars = [cars[i] for i in random_idxs]
 
-
-
     car_features = extract_features(test_cars,
                                     config['color_space'],
                                     (config['image_height'],
@@ -600,7 +687,6 @@ if __name__ == '__main__':
     logger.info('Seconds to compute features... ' + str(seconds))
     logger.info(len(car_features))
     logger.info(len(notcar_features))
-
 
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
 
@@ -638,25 +724,44 @@ if __name__ == '__main__':
     logger.info('Test accuracy of Classifier = ' + str(svc.score(X_test, y_test)))
 
     # Start with video
-    images = []
-    titles = []
+
+    out_images = []
+    out_titles = []
+
     y_start_stop = [config['y_start'], config['y_stop']] # Min/Max in y to search with slide_window()
+
     example_images = ['examples/sample.jpg']
+
     for img_src in example_images:
+
         img_boxes = []
         t1 = time.time()
         count = 0
         img = mpimg.imread(img_src)
-        draw_img = np.copy(img)
 
-        # Make Heatmap
-        heatmap = np.zeros_like((img[:, :, 0]))
-        img = img.astype(np.float32)/255. # Needed if trained on png, but are now using jpg
-        logger.info(str(np.min(img)) + ',' + str(np.max(img)))
+        draw_img, heatmap, img_boxes, count = find_cars(img, config['scale'], config['y_start'], config['y_stop'],
+                                                        config['orient'], config['pix_per_cell'],
+                                                        config['cell_per_block'], config['window'],
+                                                        config['image_height'], config['image_width'],
+                                                        config['histogram_bins'], config['box_color_red'],
+                                                        config['box_color_green'], config['box_color_blue'])
 
-        # Crop the image
-        img_tosearch = img[config['y_start']:config['y_stop'], :, :]
+        logger.info(str(time.time()-t) +' seconds to run, total windows = ' + str(count))
+        out_maps = []
+        out_boxes = []
+        out_images.append(draw_img)
 
+        out_titles.append(img_src.split('/')[-1])
+        out_titles.append(img_src.split('/')[-1])
+        # heatmap = 255 * heatmap/np.max(heatmap)
+        out_images.append(heatmap)
+        out_maps.append(heatmap)
+        out_boxes.append(img_boxes)
+
+    fig = plt.figure(figsize=(12, 24))
+    visualize(fig, 8, 2, out_images, out_titles, config['heatmap_vis_filename'])
+
+    """
         windows = slide_window(img, x_start_stop=[None, None],
                                y_start_stop=y_start_stop,
                                xy_window=(config['xy_window_x'],
@@ -695,5 +800,6 @@ if __name__ == '__main__':
         visualize(fig, 5, 2, images, titles, config['window_vis_filename'])
 
         logger.info('Window image saved.')
+    """
 
     sys.exit(0)
