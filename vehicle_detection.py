@@ -582,6 +582,41 @@ def find_cars(img, scale, y_start, y_stop, orient, pix_per_cell, cell_per_block,
     return draw_img, heatmap, img_boxes, count
 
 
+def apply_threshold(heatmap, threshold):
+    """
+    Zeros out pixels in the heatmap with values below the specified threshold.
+    :param heatmap:
+    :param threshold:
+    :return:
+    """
+    heatmap[heatmap <= threshold] = 0
+    return heatmap
+
+
+def draw_labeled_bboxes(img, labels):
+    """
+
+    :param img:
+    :param labels:
+    :return:
+    """
+    for car_number in range(1, labels[1]+1):
+        # Find pixels with each car number label value
+        nonzero = (labels[0] == car_number).nonzero()
+
+        #ID x and y values of nonzero pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (0, 0, 255), 6)
+
+    return img
+
+
 if __name__ == '__main__':
 
     # Set TensorFlow logging so it isn't so verbose.
