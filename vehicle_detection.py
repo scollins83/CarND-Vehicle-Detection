@@ -11,14 +11,11 @@ import cv2
 import time
 from skimage.feature import hog
 from sklearn.svm import LinearSVC
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import roc_auc_score
 from scipy.ndimage.measurements import label
 from moviepy.editor import VideoFileClip
-from IPython.display import HTML
 import pickle
 
 logging.basicConfig(level=logging.INFO)
@@ -631,17 +628,26 @@ def process_image(img):
                                   config['window'], config['image_height'], config['image_width'],
                                   config['histogram_bins'], config['box_color_red'],
                                   config['box_color_green'], config['box_color_blue'], X_scaler)
+    heat_map = apply_threshold(heat_map, 2)
     labels = label(heat_map)
     draw_img = draw_labeled_bboxes(np.copy(img), labels)
     return draw_img
 
 
 def preprocess_for_training():
+    t = time.time()
+    config = load_config('configurations/local_test_configuration.json')
 
     logger.info("Reading image file lists...")
     cars = get_image_file_paths(config['vehicles_image_directory'])
     notcars = get_image_file_paths(config['nonvehicles_image_directory'])
 
+    if len(cars) == 0 and len(notcars) == 0:
+        cars = glob.glob(config['vehicles_image_directory'] + '/*.jpg')
+        notcars = glob.glob(config['nonvehicles_image_directory'] + '/*.jpg')
+
+    logger.info(len(cars))
+    logger.info(len(notcars))
     random_idxs = np.random.randint(0, len(cars), config['n_samples'])
     if len(cars) <= config['n_samples']:
         test_cars = cars
@@ -682,14 +688,17 @@ def preprocess_for_training():
     logger.info(len(car_features))
     logger.info(len(notcar_features))
     X = np.vstack((car_features, notcar_features)).astype(np.float64)
+
     # Scale X features
     X_scaler = StandardScaler().fit(X)
     scaled_X = X_scaler.transform(X)
     logger.info('X: ' + str(len(scaled_X)))
+
     # Define labels vector
     y = np.hstack((np.ones(len(car_features)), np.zeros(len(notcar_features))))
     logger.info('y: ' + str(len(y)))
-    # Test/Train Sets
+
+    ##  Test/Train Sets
     X_train, X_test, y_train, y_test = train_test_split(scaled_X, y,
                                                         test_size=config['test_set_percent'],
                                                         shuffle=True)
@@ -700,7 +709,6 @@ def preprocess_for_training():
                 str(config['image_height']) + ',' + str(config['image_width']) + ') spatial sampling.')
     logger.info('Feature vector length: ' + str(len(X_train[0])))
 
-    #global car_features, notcar_features
     return X_scaler, X_train, X_test, y_train, y_test
 
 
@@ -827,7 +835,7 @@ if __name__ == '__main__':
 
         out_titles.append(img_src.split('/')[-1])
         out_titles.append(img_src.split('/')[-1])
-        # heatmap = 255 * heatmap/np.max(heatmap)
+
         out_images.append(heatmap)
         out_maps.append(heatmap)
         out_boxes.append(img_boxes)
