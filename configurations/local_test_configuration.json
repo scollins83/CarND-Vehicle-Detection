@@ -2,15 +2,15 @@
   "vehicles_image_directory":"/Users/saracollins/Dropbox/Udacity/Vehicle_Detection/data/vehicles/",
   "nonvehicles_image_directory":"/Users/saracollins/Dropbox/Udacity/Vehicle_Detection/data/non-vehicles/",
   "color_space": "RGB",
-  "orient": 8,
-  "pix_per_cell": 14,
+  "orient": 9,
+  "pix_per_cell": 8,
   "cell_per_block": 2,
   "hog_channel": "ALL",
   "feature_vec_hog": "True",
   "visualize_hog": "True",
   "image_height": 32,
   "image_width": 32,
-  "histogram_bins": 32,
+  "histogram_bins": 16,
   "extract_spatial_features": "True",
   "extract_histogram_features": "True",
   "extract_hog_features": "True",
@@ -38,6 +38,6 @@
   "window": 64,
   "input_video_file": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/test_video.mp4",
   "output_video_file": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/output_images/output_run_1.mp4",
-  "train_classifier": "True",
-  "classifier_file": "/Users/saracollins/PycharmProjects/CarND-Vehicle-Detection/output_images/svc_classifier.pkl"
+  "train_classifier": "False",
+  "classifier_file": "output_images/svc_classifier_png.pkl"
 }

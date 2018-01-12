@@ -69,15 +69,27 @@ def convert_string_to_boolean(input_string):
         return False
 
 
-# Define a function to compute binned color features
 def bin_spatial(img, size=(32, 32)):
+    """
+    Define a function to compute binned color features
+    :param img:
+    :param size:
+    :return:
+    """
     # Use cv2.resize().ravel() to create the feature vector
     features = cv2.resize(img, size).ravel()
     # Return the feature vector
     return features
 
-# Define a function to compute color histogram features
+
 def color_hist(img, nbins=32, bins_range=(0, 256)):
+    """
+    Computes color histogram features
+    :param img:
+    :param nbins:
+    :param bins_range:
+    :return:
+    """
     # Compute the histogram of the color channels separately
     channel1_hist = np.histogram(img[:,:,0], bins=nbins, range=bins_range)
     channel2_hist = np.histogram(img[:,:,1], bins=nbins, range=bins_range)
@@ -108,14 +120,27 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block,
         return features
 
 
-# Define a function to extract features from a list of images
-# Have this function call bin_spatial() and color_hist()
-# Define a function to extract features from a list of images
-# Have this function call bin_spatial() and color_hist()
 def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
                         hist_bins=32, orient=9,
                         pix_per_cell=8, cell_per_block=2, hog_channel=0,
                         spatial_feat=True, hist_feat=True, hog_feat=True):
+    """
+    Define a function to extract features from a list of images
+    Have this function call bin_spatial() and color_hist()
+
+    :param imgs:
+    :param color_space:
+    :param spatial_size:
+    :param hist_bins:
+    :param orient:
+    :param pix_per_cell:
+    :param cell_per_block:
+    :param hog_channel:
+    :param spatial_feat:
+    :param hist_feat:
+    :param hog_feat:
+    :return:
+    """
 
     spatial_feat = convert_string_to_boolean(spatial_feat)
     hist_feat = convert_string_to_boolean(hist_feat)
@@ -183,13 +208,6 @@ if __name__ == "__main__":
 
     logger.info(len(cars))
     logger.info(len(notcars))
-
-    """
-    def extract_features(imgs, color_space='RGB', spatial_size=(32, 32),
-                         hist_bins=32, orient=9,
-                         pix_per_cell=8, cell_per_block=2, hog_channel=0,
-                         spatial_feat=True, hist_feat=True, hog_feat=True):
-    """
 
     car_features = extract_features(cars,
                                     color_space=config['color_space'],
