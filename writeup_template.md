@@ -15,7 +15,7 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 [plain_car_notcar]: ./writeup_images/plain_car_and_notcar.png
 [HOG_car_notcar]: ./writeup_images/HOG_car_and_notcar.png
-[image3]: ./examples/sliding_windows.jpg
+[windows]: ./writeup_images/window_vis.png
 [image4]: ./examples/sliding_window.jpg
 [image5]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
@@ -85,13 +85,24 @@ I trained a linear SVM using the parameters noted in bold on the first row in th
 I initially took a sample of 1000, but for the final dataset, I used all of the data available 
 in the training sets. 
 
+I also used scikit-learn's GridSearchCV to find the optimal value of the C parameter, which ended up being 5. I added this 
+as a default to my 'train_svc' function in lines 728 through 748 in `vehicle_detection.py`
+
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I u
-
-![alt text][image3]
+I initially incorporated a sliding window search function, which is still contained 
+in `vehicle_detection.py` in lines 208 through 258. When I was initially using this particular 
+function, I had initially had an issue with the extract_features function and needed to tune 
+my classifier. However, this function specifies a shape and amount of overlap to use in the windows.  
+  
+Here is an image from relatively early in my development process. From the output of this particular image,
+it's clear to see that the main part of the roadway being searched wasn't covering quite the right area,
+so I adjusted it so that the y axis starts at pixel 320 to hit the roadway and stops at 1280 to get as low
+as possible in the image but still avoid searching the hood of the car. 
+  
+![alt text][windows]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
