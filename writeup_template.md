@@ -51,9 +51,28 @@ Here is an example using the `YCrCb` color space and HOG parameters of `orientat
 
 ![alt text][HOG_car_notcar]
 
-####2. Explain how you settled on your final choice of HOG parameters.
+#### 2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I tried various combinations of parameters and actually used scoring of the 
+Support Vector Machine classifier to optimize scoring for this project, and 
+the classifier will be described in the next section.  
+I also saved out the visualizations to do a 'sanity' check on the classifier score. 
+That way, I could look and see if a car was really visible or not in a discernable 
+fashion from the HOG image, as it was above.  
+    
+The parameters for HOG that I landed on were `YCrCb` colorspace, 
+`orientations=10`, `pixels_per_cell=(8, 8)`, and `cells_per_block=(2, 2)`. 
+Although I only show the visualization above in one channel, using call 
+three channels proved to be by far the best for the classifier during my
+parameter trials. 
+
+The parameters I tried and their outcomes are listed here:  
+  
+| Color Space | Orientations | Pix Per Cell | Cell Per Block | Image Height/Width | Histogram Bins | Feature Vector Length | Score |
+|:-----------:|:------------:|:------------:|:--------------:|:------------------:|:--------------:|:---------------------:|:-----:|
+| YCrCb       | 10           | 8            | 2              | 32x32              | 12             | 8968                  |       |
+
+
 
 ####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
