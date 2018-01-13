@@ -16,7 +16,7 @@ The goals / steps of this project are the following:
 [plain_car_notcar]: ./writeup_images/plain_car_and_notcar.png
 [HOG_car_notcar]: ./writeup_images/HOG_car_and_notcar.png
 [windows]: ./writeup_images/window_vis.png
-[image4]: ./examples/sliding_window.jpg
+[heatmap_windows]: ./writeup_images/heatmap_vis.png
 [image5]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
 [image7]: ./examples/output_bboxes.png
@@ -102,18 +102,22 @@ it's clear to see that the main part of the roadway being searched wasn't coveri
 so I adjusted it so that the y axis starts at pixel 320 to hit the roadway and stops at 1280 to get as low
 as possible in the image but still avoid searching the hood of the car. 
   
-![alt text][windows]
+![alt text][windows]  
+  
+ Here is the same image, applying a heatmap for 'hot' areas where cars were initially found (at this point, the classifier had an error, but it was fixed later).  
+   
+
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
 
-![alt text][image4]
+![alt text][heatmap_windows]
 ---
 
 ### Video Implementation
 
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
+#### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
 Here's a [link to my video result](./project_video.mp4)
 
 
