@@ -66,17 +66,20 @@ Although I only show the visualization above in one channel, using call
 three channels proved to be by far the best for the classifier during my
 parameter trials. 
 
-The parameters I tried and their outcomes are listed here:  
+I did over 40 runs with various colorspaces and other parameters.
+Some of the 'highlights' of those runs are listed here:  
   
 | Color Space | Orientations | Pix Per Cell | Cell Per Block | Image Height/Width | Histogram Bins | Feature Vector Length | Score   |
 |:-----------:|:------------:|:------------:|:--------------:|:------------------:|:--------------:|:---------------------:|:-------:|
-| YCrCb       | 10           | 8            | 2              | 32x32              | 12             | 8968                  | 0.9927  |
+| **YCrCb**       | **10**           | **8**            | **2**              | **32x32**              | **12**             | **8968**                  | **0.9927**  |
 | RGB         | 10           | 12           | 4              | 32x32              | 32             | 5088                  | 0.9682  |
-
-
-
-
-####3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
+| RGB         | 10           | 12           | 2              | 30x30              | 30             | 4710                  | 0.9724  |
+| RGB         | 8            | 14           | 2              | 32x32              | 32             | 4032                  | 0.9645  |
+| YCrCb       | 8            | 14           | 2              | 30x30              | 16             | 3612                  | 0.9716  |
+| YCrCb       | 9            | 8            | 2              | 32x32              | 16             | (Not recorded)        | 0.9885  |
+            
+  
+#### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
 I trained a linear SVM using...
 
