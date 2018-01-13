@@ -137,14 +137,12 @@ Here's a [link to my video result](./output_project_run_7.mp4)
 
 ####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-On earlier versions of the classifier, I had to filter out false positives from my heatmap
+On earlier versions of the classifier, I had to filter out a lot more false positives from my heatmap
 because the accuracy of the classifier wasn't as good. Often lower confidence 'hits' had 
 would show up as a lower heatmap 'hit' than higher confidence areas, so filtering them out 
 using the `apply_threshold` function in line 527 and 535 in `vehicle_detection.py`. However,
-once the classifier improved, I really wasn't getting any lower confidence hits anymore, 
-so I was able to set the threshold to 0 and technically disable that function (I included the
-value as a configuration value, just in case I wanted to run it with different types of 
-classifiers in the future). From there, I created my bounding boxes for cars being detected 
+once the classifier improved, I was able to set it much lower, but still worked well on a threshold
+of 1 or 2 (4 was too high). From there, I created my bounding boxes for cars being detected 
 using scipy image measurements labels (`vehicle_detection.py` line 602). 
 ### Here are six frames and their corresponding heatmaps:
 
