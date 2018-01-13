@@ -17,6 +17,7 @@ from sklearn.model_selection import train_test_split
 from scipy.ndimage.measurements import label
 from moviepy.editor import VideoFileClip
 import pickle
+from vehicle import VehicleTracker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -321,7 +322,7 @@ def extract_single_image_features(img, color_space='RGB', spatial_size=(32, 32),
         img_features.append(spatial_features)
     # 5) Compute histogram features if flag is set
     if hist_feat == True:
-        hist_features = color_histogram(feature_image, nbins=hist_bins)
+        hist_features = color_hist(feature_image, nbins=hist_bins)
         # 6) Append features to list
         img_features.append(hist_features)
     # 7) Compute HOG features if flag is set
@@ -440,14 +441,23 @@ def convert_color(image, conv='RGB2YCrCb'):
 
 
 def find_cars(img, scale, y_start, y_stop, orient, pix_per_cell, cell_per_block, window, image_height,
-              image_width, histogram_bins, red, green, blue, X_scaler):
+              image_width, histogram_bins, X_scaler):
     """
 
     :param img:
     :param scale:
     :return:
     """
+
     count = 0
+
+    img_boxes = []
+    xbox_lefts = []
+    ytop_draws = []
+    y_starts = []
+    win_draws = []
+
+
     # Copy image to draw on
     draw_img = np.copy(img)
 
@@ -517,18 +527,29 @@ def find_cars(img, scale, y_start, y_stop, orient, pix_per_cell, cell_per_block,
             test_prediction = svc.predict(test_features)
 
             if test_prediction == 1:
+
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
+
+                img_boxes.append(((xbox_left, ytop_draw + y_start),
+                                  xbox_left + win_draw, ytop_draw + win_draw + y_start))
+
+                xbox_lefts.append(xbox_left)
+                ytop_draws.append(ytop_draw)
+                y_starts.append(y_start)
+                win_draws.append(win_draw)
+
+                """
                 cv2.rectangle(draw_img, (xbox_left, ytop_draw + y_start),
                               (xbox_left + win_draw, ytop_draw + win_draw + y_start),
                               (red, green, blue))
-                img_boxes.append(((xbox_left, ytop_draw + y_start),
-                                  xbox_left + win_draw, ytop_draw + win_draw + y_start))
+  
                 heatmap[ytop_draw + y_start:ytop_draw + win_draw + y_start,
                 xbox_left:xbox_left + win_draw] += 1
+                """
 
-    return draw_img, heatmap, img_boxes, count
+    return draw_img, heatmap, img_boxes, count, xbox_lefts, ytop_draws, y_starts, win_draws
 
 
 def apply_threshold(heatmap, threshold):
@@ -572,14 +593,43 @@ def process_image(img):
     :param img:
     :return:
     """
-    out_img, heat_map, _, _ = find_cars(img, config['scale'], config['y_start'], config['y_stop'],
-                                  config['orient'], config['pix_per_cell'], config['cell_per_block'],
-                                  config['window'], config['image_height'], config['image_width'],
-                                  config['histogram_bins'], config['box_color_red'],
-                                  config['box_color_green'], config['box_color_blue'], X_scaler)
+    out_img, heat_map, img_boxes, _, xbox_lefts, ytop_draws, y_starts, win_draws = find_cars(img,
+                                                                                             config['scale'],
+                                                                                             config['y_start'],
+                                                                                             config['y_stop'],
+                                                                                             config['orient'],
+                                                                                             config['pix_per_cell'],
+                                                                                             config['cell_per_block'],
+                                                                                             config['window'],
+                                                                                             config['image_height'],
+                                                                                             config['image_width'],
+                                                                                             config['histogram_bins'],
+                                                                                             X_scaler)
+
+    for i in range(len(img_boxes)):
+        vehicle_tracker.add_box(img_boxes[i],
+                                xbox_lefts[i],
+                                ytop_draws[i],
+                                y_starts[i],
+                                win_draws[i])
+
+    if vehicle_tracker.average_box:
+        box = vehicle_tracker.average_box
+
+        cv2.rectangle(out_img, (box[0][0], box[0][1]),
+          (box[1], box[2]),
+          (config['box_color_red'], config['box_color_green'], config['box_color_blue']))
+
+        heat_map[vehicle_tracker.avg_ytop_draw + vehicle_tracker.avg_y_start:
+                vehicle_tracker.avg_ytop_draw + vehicle_tracker.avg_win_draw +
+                vehicle_tracker.avg_y_start, vehicle_tracker.avg_xbox_left:
+                                             vehicle_tracker.avg_xbox_left +
+                                             vehicle_tracker.avg_win_draw] += 1
+
     heat_map = apply_threshold(heat_map, 0)
     labels = label(heat_map)
     draw_img = draw_labeled_bboxes(np.copy(img), labels)
+
     return draw_img
 
 
@@ -764,16 +814,16 @@ if __name__ == '__main__':
         count = 0
         img = mpimg.imread(img_src)
 
-        draw_img, heatmap, img_boxes, count = find_cars(img, config['scale'], config['y_start'], config['y_stop'],
+        draw_img, heatmap, img_boxes, count, _, _, _, _ = find_cars(img, config['scale'], config['y_start'], config['y_stop'],
                                                         config['orient'], config['pix_per_cell'],
                                                         config['cell_per_block'], config['window'],
                                                         config['image_height'], config['image_width'],
-                                                        config['histogram_bins'], config['box_color_red'],
-                                                        config['box_color_green'], config['box_color_blue'], X_scaler)
+                                                        config['histogram_bins'], X_scaler)
 
         labels = label(heatmap)
         logger.info("Heatmap max: " + str(np.max(heatmap)))
         draw_img = draw_labeled_bboxes(np.copy(img), labels)
+
 
         logger.info(str(time.time()-t) +' seconds to run, total windows = ' + str(count))
         out_maps = []
@@ -789,6 +839,9 @@ if __name__ == '__main__':
 
     fig = plt.figure(figsize=(12, 24))
     visualize(fig, 8, 2, out_images, out_titles, config['heatmap_vis_filename'])
+
+    global vehicle_tracker
+    vehicle_tracker = VehicleTracker(5)
 
     clip = VideoFileClip(config['input_video_file'])
     processed_clip = clip.fl_image(process_image)
