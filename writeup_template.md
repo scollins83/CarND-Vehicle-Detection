@@ -17,7 +17,7 @@ The goals / steps of this project are the following:
 [HOG_car_notcar]: ./writeup_images/HOG_car_and_notcar.png
 [windows]: ./writeup_images/window_vis.png
 [heatmap_windows]: ./writeup_images/heatmap_vis.png
-[image5]: ./examples/bboxes_and_heat.png
+[heatmap]: ./writeup_images/heatmap_vis_7.png
 [image6]: ./examples/labels_map.png
 [image7]: ./examples/output_bboxes.png
 [video1]: ./project_video.mp4
@@ -106,13 +106,40 @@ as possible in the image but still avoid searching the hood of the car.
   
  Here is the same image, applying a heatmap for 'hot' areas where cars were initially found (at this point, the classifier had an error, but it was fixed later).  
    
-
+![alt text][heatmap_windows]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+After ultimately tuning the feature extraction, my best classifier got up to .9927 accuracy. 
+On earlier versions of the classifier, I had to filter out false positives from my heatmap
+because the accuracy of the classifier wasn't as good. Often lower confidence 'hits' had 
+would show up as a lower heatmap 'hit' than higher confidence areas, so filtering them out 
+using the `apply_threshold` function in line 527 and 535 in `vehicle_detection.py`. However,
+once the classifier improved, I really wasn't getting any lower confidence hits anymore, 
+so I was able to set the threshold to 0 and technically disable that function (I included the
+value as a configuration value, just in case I wanted to run it with different types of 
+classifiers in the future). From there, I created my bounding boxes for cars being detected 
+using scipy image measurements labels (`vehicle_detection.py` line 602). 
 
-![alt text][heatmap_windows]
+Last but not least, in order to stabilize the images over frames in a video and to try to 
+track multiple cars, I also implemented a Vehicle and VehicleTracker in `vehicle.py`. In that,
+I track vehicles over a set history (which is set at 5 in `vehicle_detection.py` line 845).
+
+To try to get the vehicles to split and not just have one box at a time, every time a box 
+was added, if it varied from any of the other existing 'vehicle' records (which were truncated
+to 4x the per vehicle history size). 
+
+I also rewrote the sliding_windows function with slightly different functionality which worked
+on a window, and it can be found in the 'find_cars' function in `vehicle_detection.py` lines 
+425 - 524. 
+  
+Ultimately I searched on two scales using YCrCb with all 3-channel HOG features,
+spatial features, and histograms of color in the feature vector for my best results, as specified above. 
+
+Here is a set of images that had the heat map labels applied:
+
+![alt text][heatmap]
+
 ---
 
 ### Video Implementation
