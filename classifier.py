@@ -1,5 +1,4 @@
 import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import glob
@@ -265,6 +264,7 @@ if __name__ == "__main__":
 
     # Check the score of the SVC
     logger.info('Test Accuracy of SVC = ' + str(round(svc.score(X_test, y_test), 4)))
+    score = svc.score(X_test, y_test)
 
     # Check the prediction time for a single sample
     t = time.time()
@@ -274,7 +274,9 @@ if __name__ == "__main__":
     t2 = time.time()
     print(round(t2 - t, 5), 'Seconds to predict', n_predict, 'labels with SVC')
 
-    with open(config['classifier_file'], 'wb') as pkl_file:
+    classifier_save_file = ('classifiers/svc_classifier_' + config['color_space'] + '_' +
+                            (str(int(np.round(score, 4) * 10000))) + '.pkl')
+    with open(classifier_save_file, 'wb') as pkl_file:
         pickle.dump(svc, pkl_file)
 
     sys.exit(0)
