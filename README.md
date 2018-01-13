@@ -20,7 +20,8 @@ The goals / steps of this project are the following:
 [heatmap]: ./writeup_images/heatmap_vis_8.png
 [heatmap_labels]: ./writeup_images/heatmap_vis_7.png
 [video_example]: ./writeup_images/from_video.png
-[video1]: ./project_video.mp4
+[video]: ./output_images/output_project_run_7.mp4
+
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -132,7 +133,9 @@ spatial features, and histograms of color in the feature vector for my best resu
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./output_project_run_7.mp4)
+
+Here's a [link to my video result](./output_images/output_project_run_7.mp4)
+
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
@@ -162,5 +165,10 @@ using scipy image measurements labels (`vehicle_detection.py` line 602).
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
+I had a few problems with the pipeline recognizing cars in the opposite lanes being used. Perhaps something akin to lane
+detection from previous projects would be even better than the current method. Other than that, the false positives
+were still relatively low, occasionally triggering from signs instead of cars on other versions of the model tested.
+
+
+I also had quite a bit of trouble getting the split with the vehicle detector in the VehicleTracker class to actually work right to track multiple cars at once. Allowing it to work on a single 'vehicle' worked very well, but I had trouble getting this to note multiple cars and draw multiple bounding boxes, except when I didn't limit the vehicle count, in which case my code was really inefficient. Perhaps my threshold is too low, but otherwise, moving forward, this would be the first problem I'd try to solve. 
