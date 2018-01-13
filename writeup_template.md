@@ -71,6 +71,8 @@ The parameters I tried and their outcomes are listed here:
 | Color Space | Orientations | Pix Per Cell | Cell Per Block | Image Height/Width | Histogram Bins | Feature Vector Length | Score   |
 |:-----------:|:------------:|:------------:|:--------------:|:------------------:|:--------------:|:---------------------:|:-------:|
 | YCrCb       | 10           | 8            | 2              | 32x32              | 12             | 8968                  | 0.9927  |
+| RGB         | 10           | 12           | 4              | 32x32              | 32             | 5088                  | 0.9682  |
+
 
 
 
