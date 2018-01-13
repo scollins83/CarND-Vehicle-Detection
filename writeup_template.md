@@ -17,9 +17,9 @@ The goals / steps of this project are the following:
 [HOG_car_notcar]: ./writeup_images/HOG_car_and_notcar.png
 [windows]: ./writeup_images/window_vis.png
 [heatmap_windows]: ./writeup_images/heatmap_vis.png
-[heatmap]: ./writeup_images/heatmap_vis_7.png
-[image6]: ./examples/labels_map.png
-[image7]: ./examples/output_bboxes.png
+[heatmap]: ./writeup_images/heatmap_vis_8.png
+[heatmap_labels]: ./writeup_images/heatmap_vis_7.png
+[video_example]: ./writeup_images/from_video.png
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
@@ -111,17 +111,8 @@ as possible in the image but still avoid searching the hood of the car.
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
 After ultimately tuning the feature extraction, my best classifier got up to .9927 accuracy. 
-On earlier versions of the classifier, I had to filter out false positives from my heatmap
-because the accuracy of the classifier wasn't as good. Often lower confidence 'hits' had 
-would show up as a lower heatmap 'hit' than higher confidence areas, so filtering them out 
-using the `apply_threshold` function in line 527 and 535 in `vehicle_detection.py`. However,
-once the classifier improved, I really wasn't getting any lower confidence hits anymore, 
-so I was able to set the threshold to 0 and technically disable that function (I included the
-value as a configuration value, just in case I wanted to run it with different types of 
-classifiers in the future). From there, I created my bounding boxes for cars being detected 
-using scipy image measurements labels (`vehicle_detection.py` line 602). 
 
-Last but not least, in order to stabilize the images over frames in a video and to try to 
+In order to stabilize the images over frames in a video and to try to 
 track multiple cars, I also implemented a Vehicle and VehicleTracker in `vehicle.py`. In that,
 I track vehicles over a set history (which is set at 5 in `vehicle_detection.py` line 845).
 
@@ -136,41 +127,42 @@ on a window, and it can be found in the 'find_cars' function in `vehicle_detecti
 Ultimately I searched on two scales using YCrCb with all 3-channel HOG features,
 spatial features, and histograms of color in the feature vector for my best results, as specified above. 
 
-Here is a set of images that had the heat map labels applied:
-
-![alt text][heatmap]
-
 ---
 
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./output_project_run_7.mp4)
 
 
 ####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
-
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
+On earlier versions of the classifier, I had to filter out false positives from my heatmap
+because the accuracy of the classifier wasn't as good. Often lower confidence 'hits' had 
+would show up as a lower heatmap 'hit' than higher confidence areas, so filtering them out 
+using the `apply_threshold` function in line 527 and 535 in `vehicle_detection.py`. However,
+once the classifier improved, I really wasn't getting any lower confidence hits anymore, 
+so I was able to set the threshold to 0 and technically disable that function (I included the
+value as a configuration value, just in case I wanted to run it with different types of 
+classifiers in the future). From there, I created my bounding boxes for cars being detected 
+using scipy image measurements labels (`vehicle_detection.py` line 602). 
 ### Here are six frames and their corresponding heatmaps:
 
-![alt text][image5]
+![alt text][heatmap]
 
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
+### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames, and note that carrying over the boxes over time impacted these as well:
+![alt text][heatmap_labels]
 
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
+### Here the resulting bounding boxes are drawn onto a frame from the video:
+![alt text][video_example]
 
 
 
 ---
 
-###Discussion
+### Discussion
 
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
 
