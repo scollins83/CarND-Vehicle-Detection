@@ -19,18 +19,21 @@ class VehicleTracker():
             for car in self.vehicles:
                 car_box = car.average_box
 
-                if ((car_box[0][0] >= (box[0][0] - box[0][0]*.1)) and (car_box[0][0] <= (box[0][0] + box[0][0]*.1))) \
+                if ((car_box[0][0] >= (box[0][0] - box[0][0]*.2)) and (car_box[0][0] <= (box[0][0] + box[0][0]*.2))) \
                     and \
-                    ((car_box[0][1] >= (box[0][1] - box[0][1] * .1)) and (car_box[0][1] <= (box[0][1] + box[0][1] * .1))) \
+                    ((car_box[0][1] >= (box[0][1] - box[0][1] * .2)) and (car_box[0][1] <= (box[0][1] + box[0][1] * .2))) \
                     and \
-                    ((car_box[1] >= (box[1] - box[1] * .1)) and (car_box[1] <= (box[1] + box[1] * .1))) \
+                    ((car_box[1] >= (box[1] - box[1] * .2)) and (car_box[1] <= (box[1] + box[1] * .2))) \
                     and \
-                    ((car_box[2] >= (box[2] - box[2] * .1)) and (car_box[2] <= (box[2] + box[2] * .1))):
+                    ((car_box[2] >= (box[2] - box[2] * .2)) and (car_box[2] <= (box[2] + box[2] * .2))):
                     car.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
                 else:
                     new_vehicle = Vehicle(self.history_length)
                     new_vehicle.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
                     self.vehicles.append(new_vehicle)
+
+                    if len(self.vehicles) > self.history_length:
+                        self.vehicles = self.vehicles[-(self.history_length * 4):]
 
 
 class Vehicle():

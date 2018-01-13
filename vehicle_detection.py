@@ -393,7 +393,6 @@ def visualize(figure, rows, cols, imgs, titles, filename):
     :param titles:
     :return:
     """
-    # TODO: Modify to capture runtime in filename.
     for i, img in enumerate(imgs):
         plt.subplot(rows, cols, i + 1)
         plt.title(i + 1)
