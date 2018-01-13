@@ -577,7 +577,7 @@ def process_image(img):
                                   config['window'], config['image_height'], config['image_width'],
                                   config['histogram_bins'], config['box_color_red'],
                                   config['box_color_green'], config['box_color_blue'], X_scaler)
-    heat_map = apply_threshold(heat_map, 2)
+    heat_map = apply_threshold(heat_map, 0)
     labels = label(heat_map)
     draw_img = draw_labeled_bboxes(np.copy(img), labels)
     return draw_img
@@ -755,7 +755,7 @@ if __name__ == '__main__':
 
     y_start_stop = [config['y_start'], config['y_stop']] # Min/Max in y to search with slide_window()
 
-    example_images = ['examples/sample.jpg']
+    example_images = glob.glob('test_images/testing/*.jpg')
 
     for img_src in example_images:
 
