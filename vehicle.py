@@ -8,23 +8,29 @@ class VehicleTracker():
 
 
     def add_box(self, box, xbox_left, ytop_draw, y_start, win_draw):
-        # Determine if car is 30% or more different than any other box average in the cars list.
+        # Determine if car is 10% or more different than any other box average in the cars list.
         # Add the new box to the first car that it matches 30% with.
-        for car in self.vehicles:
-            car_box = car.average_box
+        if len(self.vehicles) == 0:
+            new_vehicle = Vehicle(self.history_length)
+            new_vehicle.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
+            self.vehicles.append(new_vehicle)
 
-            if ((car_box[0][0] >= (box[0][0] - box[0][0]*.3)) and (car_box[0][0] <= (box[0][0] + box[0][0]*.3))) \
-                and \
-                ((car_box[0][1] >= (box[0][1] - box[0][1] * .3)) and (car_box[0][1] <= (box[0][1] + box[0][1] * .3))) \
-                and \
-                ((car_box[1] >= (box[1] - box[1] * .3)) and (car_box[1] <= (box[1] + box[1] * .3))) \
-                and \
-                ((car_box[2] >= (box[2] - box[2] * .3)) and (car_box[2] <= (box[2] + box[2] * .3))):
-                car.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
-            else:
-                new_vehicle = Vehicle(self.history_length)
-                new_vehicle.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
-                self.vehicles.append(new_vehicle)
+        else:
+            for car in self.vehicles:
+                car_box = car.average_box
+
+                if ((car_box[0][0] >= (box[0][0] - box[0][0]*.1)) and (car_box[0][0] <= (box[0][0] + box[0][0]*.1))) \
+                    and \
+                    ((car_box[0][1] >= (box[0][1] - box[0][1] * .1)) and (car_box[0][1] <= (box[0][1] + box[0][1] * .1))) \
+                    and \
+                    ((car_box[1] >= (box[1] - box[1] * .1)) and (car_box[1] <= (box[1] + box[1] * .1))) \
+                    and \
+                    ((car_box[2] >= (box[2] - box[2] * .1)) and (car_box[2] <= (box[2] + box[2] * .1))):
+                    car.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
+                else:
+                    new_vehicle = Vehicle(self.history_length)
+                    new_vehicle.add_box(box, xbox_left, ytop_draw, y_start, win_draw)
+                    self.vehicles.append(new_vehicle)
 
 
 class Vehicle():
@@ -107,21 +113,3 @@ class Vehicle():
             self.avg_ytop_draw = int(np.mean(self.ytop_draw))
             self.avg_y_start = int(np.mean(self.y_start))
             self.avg_win_draw = int(np.mean(self.win_draw))
-
-
-
-"""
-        self.detected = False
-        self.n_detections = 0
-        self.n_nondetections = 0
-        self.xpixels = None
-        self.ypixels = None
-        self.recent_xfitted = []
-        self.bestx = None
-        self.recent_yfitted = []
-        self.besty = None
-        self.recent_wfitted = []
-        self.bestw = None
-        self.recent_hfitted = []
-        self.besth = None
-"""

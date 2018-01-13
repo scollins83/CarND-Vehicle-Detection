@@ -595,6 +595,7 @@ def process_image(img):
                                 y_starts[i],
                                 win_draws[i])
 
+    logger.info('Vehicles found: ' + str(vehicle_tracker.vehicle_count))
     for car in vehicle_tracker.vehicles:
 
         if car.average_box:
@@ -788,19 +789,18 @@ def process_still_images(config, X_scaler):
                                     y_starts[i],
                                     win_draws[i])
 
-        for car in still_vehicle_tracker.vehicles:
+        if still_vehicle_tracker.average_box:
+            box = still_vehicle_tracker.average_box
 
-            if car.average_box:
-                box = car.average_box
+            cv2.rectangle(out_img, (box[0][0], box[0][1]),
+                          (box[1], box[2]),
+                          (config['box_color_red'], config['box_color_green'], config['box_color_blue']))
 
-                cv2.rectangle(out_img, (box[0][0], box[0][1]),
-                              (box[1], box[2]),
-                              (config['box_color_red'], config['box_color_green'], config['box_color_blue']))
+            heat_map[still_vehicle_tracker.avg_ytop_draw + still_vehicle_tracker.avg_y_start:
+                     still_vehicle_tracker.avg_ytop_draw + still_vehicle_tracker.avg_win_draw +
+                     still_vehicle_tracker.avg_y_start, still_vehicle_tracker.avg_xbox_left:still_vehicle_tracker.avg_xbox_left + still_vehicle_tracker.avg_win_draw] += 1
 
-                heat_map[car.avg_ytop_draw + car.avg_y_start:
-                         car.avg_ytop_draw + car.avg_win_draw +
-                         car.avg_y_start, car.avg_xbox_left:car.avg_xbox_left + car.avg_win_draw] += 1
-
+        logger.info("Post Heat map max: " + str(heat_map.max()))
         heat_map = apply_threshold(heat_map, config['heatmap_threshold'])
         labels = label(heat_map)
         draw_img = draw_labeled_bboxes(np.copy(img), labels)
@@ -849,7 +849,7 @@ if __name__ == '__main__':
     # Start with video
     if config["process_still_images"] == "True":
         global still_vehicle_tracker
-        still_vehicle_tracker = VehicleTracker(5)
+        still_vehicle_tracker = Vehicle(5)
         _ = process_still_images(config, X_scaler)
 
     global vehicle_tracker
