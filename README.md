@@ -162,5 +162,8 @@ using scipy image measurements labels (`vehicle_detection.py` line 602).
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+I had a few problems with the pipeline recognizing cars in the opposite lanes being used. Perhaps something akin to lane
+detection from previous projects would be even better than the current method. Other than that, the false positives
+were still relatively low, occasionally triggering from signs instead of cars on other versions of the model tested.
 
+I also had quite a bit of trouble getting the split with the vehicle detector in the VehicleTracker class to actually work right to track multiple cars at once. Allowing it to work on a single 'vehicle' worked very well, but I had trouble getting this to note multiple cars and draw multiple bounding boxes, except when I didn't limit the vehicle count, in which case my code was really inefficient. Perhaps my threshold is too low, but otherwise, moving forward, this would be the first problem I'd try to solve. 
