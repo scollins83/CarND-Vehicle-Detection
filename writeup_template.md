@@ -135,7 +135,7 @@ spatial features, and histograms of color in the feature vector for my best resu
 Here's a [link to my video result](./output_project_run_7.mp4)
 
 
-####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
+#### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
 On earlier versions of the classifier, I had to filter out a lot more false positives from my heatmap
 because the accuracy of the classifier wasn't as good. Often lower confidence 'hits' had 
