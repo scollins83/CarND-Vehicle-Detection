@@ -68,9 +68,9 @@ parameter trials.
 
 The parameters I tried and their outcomes are listed here:  
   
-| Color Space | Orientations | Pix Per Cell | Cell Per Block | Image Height/Width | Histogram Bins | Feature Vector Length | Score |
-|:-----------:|:------------:|:------------:|:--------------:|:------------------:|:--------------:|:---------------------:|:-----:|
-| YCrCb       | 10           | 8            | 2              | 32x32              | 12             | 8968                  |       |
+| Color Space | Orientations | Pix Per Cell | Cell Per Block | Image Height/Width | Histogram Bins | Feature Vector Length | Score   |
+|:-----------:|:------------:|:------------:|:--------------:|:------------------:|:--------------:|:---------------------:|:-------:|
+| YCrCb       | 10           | 8            | 2              | 32x32              | 12             | 8968                  | 0.9927  |
 
 
 
