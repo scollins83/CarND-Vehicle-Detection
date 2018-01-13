@@ -595,7 +595,6 @@ def process_image(img):
                                 y_starts[i],
                                 win_draws[i])
 
-    logger.info('Vehicles found: ' + str(vehicle_tracker.vehicle_count))
     for car in vehicle_tracker.vehicles:
 
         if car.average_box:
