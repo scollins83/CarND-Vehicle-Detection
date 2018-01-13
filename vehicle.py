@@ -56,8 +56,8 @@ class Vehicle():
         :param boxes:
         :return:
         """
-        print(box)
-        print("Pre-box history: " + str(len(self.box_history)))
+        #print(box)
+        #print("Pre-box history: " + str(len(self.box_history)))
 
         self.box_history.append(box)
         self.xbox_left.append(xbox_left)
@@ -65,13 +65,12 @@ class Vehicle():
         self.y_start.append(y_start)
         self.win_draw.append(win_draw)
 
-        print("Mid-box history: " + str(len(self.box_history)))
+        #print("Mid-box history: " + str(len(self.box_history)))
 
         self.adjust_box_history()
 
-        print("Post-box history: " + str(len(self.box_history)))
+        #print("Post-box history: " + str(len(self.box_history)))
         self.set_average_box()
-
 
 
     def adjust_box_history(self):
@@ -108,7 +107,7 @@ class Vehicle():
                 w += box[2]
 
             self.average_box = (((x//counter),(y//counter)), (z//counter), (w//counter))
-            print(self.average_box)
+            #print(self.average_box)
             self.avg_xbox_left = int(np.mean(self.xbox_left))
             self.avg_ytop_draw = int(np.mean(self.ytop_draw))
             self.avg_y_start = int(np.mean(self.y_start))
